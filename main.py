@@ -211,16 +211,21 @@ def main():
         )
         final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
-        # دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
-        last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
-        for msg in last_messages:
-            if "موجودی سامسونگ" in msg["message"]["text"]:
-                button_markup = {
-                    "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
-                }
-                if final_message_id:
-                    send_telegram_message("🔹 دکمه لیست سامسونگ اضافه شد", BOT_TOKEN, CHAT_ID, reply_markup=str(button_markup))
-                break
+# دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
+last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
+for msg in last_messages:
+    if "موجودی سامسونگ" in msg["message"]["text"]:
+        button_markup = {
+            "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
+        }
+        if final_message_id:
+            send_telegram_message(
+                "🔹 دکمه لیست سامسونگ اضافه شد",
+                BOT_TOKEN,
+                CHAT_ID,
+                reply_markup=json.dumps(button_markup)  # ✅ تبدیل به JSON
+            )
+        break
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 

@@ -3,6 +3,7 @@ import os
 import time
 import requests
 import logging
+import json
 import threading
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -174,7 +175,26 @@ def main():
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
             
-     import json
+
+def send_telegram_button(message, bot_token, chat_id, target_message_id=None):
+    """ارسال پیام پرداخت همراه با دکمه لیست سامسونگ"""
+    keyboard = {
+        "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{chat_id[4:]}/{target_message_id}"}]] if target_message_id else []
+    }
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    params = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "MarkdownV2",
+        "reply_markup": json.dumps(keyboard)
+    }
+
+    response = requests.post(url, json=params)
+    if response.json().get('ok') is False:
+        logging.error(f"❌ خطا در ارسال دکمه: {response.json()}")
+    else:
+        logging.info("✅ دکمه ارسال شد!")
 
 def get_last_messages(bot_token, chat_id, limit=5):
     """دریافت ۵ پیام آخر برای جستجوی پیام مورد نظر"""
@@ -198,26 +218,6 @@ def find_message_id(bot_token, chat_id, keyword="موجودی سامسونگ"):
             return msg["message"]["message_id"]
     return None  # اگر پیام پیدا نشد
 
-def send_telegram_button(message, bot_token, chat_id, target_message_id=None):
-    """ارسال پیام پرداخت همراه با دکمه لیست سامسونگ"""
-    keyboard = {
-        "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{chat_id[4:]}/{target_message_id}"}]] if target_message_id else []
-    }
-
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    params = {
-        "chat_id": chat_id,
-        "text": message,
-        "parse_mode": "MarkdownV2",
-        "reply_markup": json.dumps(keyboard)
-    }
-
-    response = requests.post(url, json=params)
-    if response.json().get('ok') is False:
-        logging.error(f"❌ خطا در ارسال دکمه: {response.json()}")
-    else:
-        logging.info("✅ دکمه ارسال شد!")
-
 def main():
     try:
         # دریافت پیام مورد نظر
@@ -239,12 +239,6 @@ def main():
         
         send_telegram_button(final_message, BOT_TOKEN, CHAT_ID, target_message_id=found_message_id)
         
-    except Exception as e:
-        logging.error(f"❌ خطا: {e}")
-
-if __name__ == "__main__":
-    main()
-
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 

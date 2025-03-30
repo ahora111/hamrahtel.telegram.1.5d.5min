@@ -208,7 +208,7 @@ def main():
             "📞 09371111558\n"
             "📞 02833991417"
         )
-                final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
+        final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
         # دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
         last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)

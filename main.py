@@ -137,7 +137,7 @@ def send_telegram_message(message, bot_token, chat_id, reply_markup=None):
             "parse_mode": "MarkdownV2"
         }
         if reply_markup:
-            params["reply_markup"] = reply_markup
+            params["reply_markup"] = json.dumps(reply_markup)  # ✅ تبدیل به JSON
 
         response = requests.get(url, params=params)
         response_data = response.json()
@@ -211,24 +211,25 @@ def main():
         )
         final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
-try:
-    # دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
-    last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
-    for msg in last_messages:
-        if "موجودی سامسونگ" in msg["message"]["text"]:
-            button_markup = {
-                "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
-            }
-            if final_message_id:
-                send_telegram_message(
-                    "🔹 دکمه لیست سامسونگ اضافه شد",
-                    BOT_TOKEN,
-                    CHAT_ID,
-                    reply_markup=json.dumps(button_markup)  # ✅ تبدیل به JSON
-                )
-            break
-except Exception as e:
-    logging.error(f"❌ خطا: {e}")
+        # ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
+        last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
+        for msg in last_messages:
+            if "موجودی سامسونگ" in msg["message"]["text"]:
+                button_markup = {
+                    "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
+                }
+                if final_message_id:
+                    send_telegram_message(
+                        "🔹 دکمه لیست سامسونگ اضافه شد",
+                        BOT_TOKEN,
+                        CHAT_ID,
+                        reply_markup=button_markup  # ✅ ارسال درست دکمه
+                    )
+                break
+
+    except Exception as e:
+        logging.error(f"❌ خطا: {e}")
 
 if __name__ == "__main__":
     main()
+

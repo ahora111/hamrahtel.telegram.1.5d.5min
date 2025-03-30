@@ -202,9 +202,9 @@ def main():
 
                     if category == "🔵":  # ذخیره message_id سامسونگ
                         samsung_message_id = msg_id
-                    elif category == "🟠":  # ذخیره message_id شیایومی
+                    elif category == "🟡":  # ذخیره message_id شیایومی
                         xiaomi_message_id = msg_id
-                    elif category == "🟢":  # ذخیره message_id آیفون
+                    elif category == "🍏":  # ذخیره message_id آیفون
                         iphone_message_id = msg_id
 
         else:

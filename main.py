@@ -174,6 +174,56 @@ def main():
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
             
+     import json
+
+def get_last_messages(bot_token, chat_id, limit=5):
+    """دریافت ۵ پیام آخر برای جستجوی پیام مورد نظر"""
+    url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
+    params = {"limit": limit}
+    response = requests.get(url, params=params)
+    
+    if response.status_code == 200:
+        updates = response.json().get("result", [])
+        messages = [msg for msg in updates if "message" in msg and "text" in msg["message"]]
+        return messages
+    else:
+        logging.error("❌ خطا در دریافت پیام‌ها!")
+        return []
+
+def find_message_id(bot_token, chat_id, keyword="موجودی سامسونگ"):
+    """جستجوی پیام دارای کلمه کلیدی و دریافت message_id آن"""
+    messages = get_last_messages(bot_token, chat_id)
+    for msg in messages:
+        if keyword in msg["message"]["text"]:
+            return msg["message"]["message_id"]
+    return None  # اگر پیام پیدا نشد
+
+def send_telegram_button(message, bot_token, chat_id, target_message_id=None):
+    """ارسال پیام پرداخت همراه با دکمه لیست سامسونگ"""
+    keyboard = {
+        "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{chat_id[4:]}/{target_message_id}"}]] if target_message_id else []
+    }
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    params = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "MarkdownV2",
+        "reply_markup": json.dumps(keyboard)
+    }
+
+    response = requests.post(url, json=params)
+    if response.json().get('ok') is False:
+        logging.error(f"❌ خطا در ارسال دکمه: {response.json()}")
+    else:
+        logging.info("✅ دکمه ارسال شد!")
+
+def main():
+    try:
+        # دریافت پیام مورد نظر
+        found_message_id = find_message_id(BOT_TOKEN, CHAT_ID)
+
+        # ارسال پیام پرداخت همراه با دکمه
         final_message = (
             "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
             "✅ شماره کارت جهت واریز\n"
@@ -186,8 +236,15 @@ def main():
             "📞 09371111558\n"
             "📞 02833991417"
         )
-        send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
         
+        send_telegram_button(final_message, BOT_TOKEN, CHAT_ID, target_message_id=found_message_id)
+        
+    except Exception as e:
+        logging.error(f"❌ خطا: {e}")
+
+if __name__ == "__main__":
+    main()
+
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 

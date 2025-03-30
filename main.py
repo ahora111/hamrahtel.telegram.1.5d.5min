@@ -211,7 +211,6 @@ def main():
             "📞 09371111558\n"
             "📞 02833991417"
         )
-        final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
         # ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"، "موجودی شیایومی" و "موجودی آیفون"
         last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
@@ -226,19 +225,18 @@ def main():
             if "⬅️ موجودی آیفون ➡️" in text:
                 button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "callback_data": "list_iphone"}])
         
-        if button_markup["inline_keyboard"] and final_message_id:
-            send_telegram_message(
-                "🔹 دکمه‌های لیست گوشی‌ها اضافه شد",
-                BOT_TOKEN,
-                CHAT_ID,
-                reply_markup=button_markup  # ✅ ارسال دکمه‌ها
-            )
-
+        final_message_id = send_telegram_message(
+            final_message,
+            BOT_TOKEN,
+            CHAT_ID,
+            reply_markup=button_markup if button_markup["inline_keyboard"] else None  # ✅ اضافه کردن دکمه‌ها به پیام اصلی
+        )
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -136,6 +136,14 @@ def send_telegram_message(message, bot_token, chat_id):
             return
     logging.info("✅ پیام ارسال شد!")
 
+def get_last_messages(bot_token, chat_id, limit=5):
+    url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
+    response = requests.get(url)
+    if response.json().get("ok"):
+        messages = response.json().get("result", [])
+        return [msg for msg in messages if "message" in msg][-limit:]
+    return []
+
 def main():
     try:
         driver = get_driver()

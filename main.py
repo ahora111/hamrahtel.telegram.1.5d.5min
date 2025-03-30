@@ -191,7 +191,8 @@ def main():
                 if lines:
                     header, footer = get_header_footer(category, update_date)
                     message = header + "\n" + "\n".join(lines) + footer
-                final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
+                    send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
+     
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
             
@@ -207,7 +208,7 @@ def main():
             "📞 09371111558\n"
             "📞 02833991417"
         )
-        send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
+                final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
         # دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
         last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)

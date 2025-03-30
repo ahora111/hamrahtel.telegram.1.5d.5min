@@ -137,9 +137,10 @@ def send_telegram_message(message, bot_token, chat_id, reply_markup=None):
             "parse_mode": "MarkdownV2"
         }
         if reply_markup:
-            params["reply_markup"] = json.dumps(reply_markup, ensure_ascii=False)  # ✅ تبدیل به JSON استاندارد
+            params["reply_markup"] = json.dumps(reply_markup)  # ✅ تبدیل `reply_markup` به JSON
 
-        response = requests.post(url, json=params)  # ✅ درخواست باید `POST` باشد
+        headers = {"Content-Type": "application/json"}  # ✅ اضافه کردن `headers` برای `POST`
+        response = requests.post(url, json=params, headers=headers)  
         response_data = response.json()
         if response_data.get('ok'):
             last_message_id = response_data["result"]["message_id"]
@@ -149,6 +150,7 @@ def send_telegram_message(message, bot_token, chat_id, reply_markup=None):
 
     logging.info("✅ پیام ارسال شد!")
     return last_message_id  # برگشت message_id آخرین پیام
+
 
 def get_last_messages(bot_token, chat_id, limit=5):
     url = f"https://api.telegram.org/bot{bot_token}/getUpdates"

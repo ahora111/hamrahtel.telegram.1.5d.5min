@@ -176,30 +176,37 @@ def main():
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
-        samsung_message_id = None  # ذخیره message_id سامسونگ
+samsung_message_id = None  
+xiaomi_message_id = None  
+iphone_message_id = None  
 
-        if brands:
-            processed_data = []
-            for i in range(len(brands)):
-                model_str = process_model(models[i])
-                processed_data.append(f"{model_str} {brands[i]}")
+if brands:
+    processed_data = []
+    for i in range(len(brands)):
+        model_str = process_model(models[i])
+        processed_data.append(f"{model_str} {brands[i]}")
 
-            update_date = JalaliDate.today().strftime("%Y-%m-%d")
-            message_lines = []
-            for row in processed_data:
-                decorated = decorate_line(row)
-                message_lines.append(decorated)
+    update_date = JalaliDate.today().strftime("%Y-%m-%d")
+    message_lines = []
+    for row in processed_data:
+        decorated = decorate_line(row)
+        message_lines.append(decorated)
 
-            categories = categorize_messages(message_lines)
+    categories = categorize_messages(message_lines)
 
-            for category, lines in categories.items():
-                if lines:
-                    header, footer = get_header_footer(category, update_date)
-                    message = header + "\n" + "\n".join(lines) + footer
-                    msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
+    for category, lines in categories.items():
+        if lines:
+            header, footer = get_header_footer(category, update_date)
+            message = header + "\n" + "\n".join(lines) + footer
+            msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
 
-                    if category == "🔵":  # ذخیره message_id سامسونگ
-                        samsung_message_id = msg_id
+            if category == "🔵":  # سامسونگ
+                samsung_message_id = msg_id
+            elif category == "🟠":  # شیائومی
+                xiaomi_message_id = msg_id
+            elif category == "🟢":  # آیفون
+                iphone_message_id = msg_id
+
 
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
@@ -222,9 +229,21 @@ def main():
             "📞 02833991417"
         )
 
-        button_markup = {
-            "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}]]
-        }
+        button_markup = {"inline_keyboard": []}
+
+if samsung_message_id:
+    button_markup["inline_keyboard"].append([{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
+
+if xiaomi_message_id:
+    button_markup["inline_keyboard"].append([{"text": "📱 لیست شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
+
+if iphone_message_id:
+    button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{iphone_message_id}"}])
+
+if button_markup["inline_keyboard"]:
+    send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
+else:
+    logging.error("❌ هیچ لیستی ارسال نشد، دکمه‌ها ساخته نشدند!")
 
         send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
 

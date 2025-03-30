@@ -214,7 +214,7 @@ def main():
         # ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
         last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
         for msg in last_messages:
-            if "موجودی سامسونگ" in msg["message"]["text"]:
+            if "⬅️ موجودی سامسونگ ➡️" in msg["message"]["text"]:
                 button_markup = {
                     "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
                 }

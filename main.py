@@ -176,46 +176,29 @@ def main():
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
-samsung_message_id = None  
-xiaomi_message_id = None  
-iphone_message_id = None  
+        if brands:
+            processed_data = []
+            for i in range(len(brands)):
+                model_str = process_model(models[i])
+                processed_data.append(f"{model_str} {brands[i]}")
 
-if brands:
-    processed_data = []
-    for i in range(len(brands)):
-        model_str = process_model(models[i])
-        processed_data.append(f"{model_str} {brands[i]}")
+            update_date = JalaliDate.today().strftime("%Y-%m-%d")
+            message_lines = []
+            for row in processed_data:
+                decorated = decorate_line(row)
+                message_lines.append(decorated)
 
-    update_date = JalaliDate.today().strftime("%Y-%m-%d")
-    message_lines = []
-    for row in processed_data:
-        decorated = decorate_line(row)
-        message_lines.append(decorated)
+            categories = categorize_messages(message_lines)
 
-    categories = categorize_messages(message_lines)
-
-    for category, lines in categories.items():
-        if lines:
-            header, footer = get_header_footer(category, update_date)
-            message = header + "\n" + "\n".join(lines) + footer
-            msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
-
-            if category == "🔵":  # سامسونگ
-                samsung_message_id = msg_id
-            elif category == "🟠":  # شیائومی
-                xiaomi_message_id = msg_id
-            elif category == "🟢":  # آیفون
-                iphone_message_id = msg_id
-
-
+            for category, lines in categories.items():
+                if lines:
+                    header, footer = get_header_footer(category, update_date)
+                    message = header + "\n" + "\n".join(lines) + footer
+                    send_telegram_message(message, BOT_TOKEN, CHAT_ID)
+     
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
 
-        if not samsung_message_id:
-            logging.error("❌ پیام سامسونگ ارسال نشد، دکمه اضافه نخواهد شد!")
-            return
-
-        # ✅ ارسال پیام نهایی + دکمه لینک به پیام سامسونگ
         final_message = (
             "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
             "✅ شماره کارت جهت واریز\n"
@@ -228,24 +211,28 @@ if brands:
             "📞 09371111558\n"
             "📞 02833991417"
         )
+        final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
+        # ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"، "موجودی شیایومی" و "موجودی آیفون"
+        last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
         button_markup = {"inline_keyboard": []}
-
-if samsung_message_id:
-    button_markup["inline_keyboard"].append([{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
-
-if xiaomi_message_id:
-    button_markup["inline_keyboard"].append([{"text": "📱 لیست شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
-
-if iphone_message_id:
-    button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{iphone_message_id}"}])
-
-if button_markup["inline_keyboard"]:
-    send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
-else:
-    logging.error("❌ هیچ لیستی ارسال نشد، دکمه‌ها ساخته نشدند!")
-
-        send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
+        
+        for msg in last_messages:
+            text = msg["message"]["text"]
+            if "⬅️ موجودی سامسونگ ➡️" in text:
+                button_markup["inline_keyboard"].append([{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}])
+            if "⬅️ موجودی شیایومی ➡️" in text:
+                button_markup["inline_keyboard"].append([{"text": "📱 لیست شیایومی", "callback_data": "list_xiaomi"}])
+            if "⬅️ موجودی آیفون ➡️" in text:
+                button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "callback_data": "list_iphone"}])
+        
+        if button_markup["inline_keyboard"] and final_message_id:
+            send_telegram_message(
+                "🔹 دکمه‌های لیست گوشی‌ها اضافه شد",
+                BOT_TOKEN,
+                CHAT_ID,
+                reply_markup=button_markup  # ✅ ارسال دکمه‌ها
+            )
 
     except Exception as e:
         logging.error(f"❌ خطا: {e}")

@@ -176,6 +176,8 @@ def main():
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
+        samsung_message_id = None  # ذخیره message_id سامسونگ
+
         if brands:
             processed_data = []
             for i in range(len(brands)):
@@ -190,20 +192,23 @@ def main():
 
             categories = categorize_messages(message_lines)
 
-            samsung_message_id = None
             for category, lines in categories.items():
                 if lines:
                     header, footer = get_header_footer(category, update_date)
                     message = header + "\n" + "\n".join(lines) + footer
                     msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
 
-                    if category == "🔵":  # ذخیره پیام سامسونگ
+                    if category == "🔵":  # ذخیره message_id سامسونگ
                         samsung_message_id = msg_id
 
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
 
-        # ✅ ارسال پیام نهایی
+        if not samsung_message_id:
+            logging.error("❌ پیام سامسونگ ارسال نشد، دکمه اضافه نخواهد شد!")
+            return
+
+        # ✅ ارسال پیام نهایی + دکمه لینک به پیام سامسونگ
         final_message = (
             "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
             "✅ شماره کارت جهت واریز\n"
@@ -216,19 +221,18 @@ def main():
             "📞 09371111558\n"
             "📞 02833991417"
         )
-        send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
 
-        # ✅ ارسال دکمه فقط در صورتی که پیام سامسونگ ارسال شده باشد
-        if samsung_message_id:
-            button_markup = {
-                "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
-            }
-            send_telegram_message("🔹 مشاهده لیست سامسونگ:", BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
+        button_markup = {
+            "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}]]
+        }
+
+        send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
 
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 
 if __name__ == "__main__":
     main()
+
 
 

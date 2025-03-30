@@ -196,7 +196,7 @@ def main():
      
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
-            
+
         final_message = (
             "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
             "✅ شماره کارت جهت واریز\n"
@@ -210,29 +210,27 @@ def main():
             "📞 02833991417"
         )
         final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
-        
-# ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
-last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
-for msg in last_messages:
-    if "موجودی سامسونگ" in msg["message"]["text"]:
-        button_markup = {
-            "inline_keyboard": [
-                [{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]
-            ]
-        }
-        if final_message_id:
-            send_telegram_message(
-                "🔹 دکمه لیست سامسونگ اضافه شد",
-                BOT_TOKEN,
-                CHAT_ID,
-                reply_markup=button_markup  # ✅ ارسال دکمه
-            )
-        break
 
+        # ✅ دریافت ۵ پیام آخر و بررسی "موجودی سامسونگ"
+        last_messages = get_last_messages(BOT_TOKEN, CHAT_ID, 5)
+        for msg in last_messages:
+            if "موجودی سامسونگ" in msg["message"]["text"]:
+                button_markup = {
+                    "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "callback_data": "list_samsung"}]]
+                }
+                if final_message_id:
+                    send_telegram_message(
+                        "🔹 دکمه لیست سامسونگ اضافه شد",
+                        BOT_TOKEN,
+                        CHAT_ID,
+                        reply_markup=button_markup  # ✅ ارسال دکمه
+                    )
+                break
 
     except Exception as e:
         logging.error(f"❌ خطا: {e}")
 
 if __name__ == "__main__":
     main()
+
 

@@ -124,17 +124,30 @@ def get_header_footer(category, update_date):
     footer = "\n\n☎️ شماره های تماس :\n📞 09371111558\n📞 02833991417"
     return headers[category], footer
 
-def send_telegram_message(message, bot_token, chat_id):
+def send_telegram_message(message, bot_token, chat_id, reply_markup=None):
     message_parts = split_message(message)
+    last_message_id = None
     for part in message_parts:
         part = escape_markdown(part)
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        params = {"chat_id": chat_id, "text": part, "parse_mode": "MarkdownV2"}
+        params = {
+            "chat_id": chat_id,
+            "text": part,
+            "parse_mode": "MarkdownV2"
+        }
+        if reply_markup:
+            params["reply_markup"] = reply_markup
+
         response = requests.get(url, params=params)
-        if response.json().get('ok') is False:
-            logging.error(f"❌ خطا در ارسال پیام: {response.json()}")
-            return
+        response_data = response.json()
+        if response_data.get('ok'):
+            last_message_id = response_data["result"]["message_id"]
+        else:
+            logging.error(f"❌ خطا در ارسال پیام: {response_data}")
+            return None
+
     logging.info("✅ پیام ارسال شد!")
+    return last_message_id  # برگشت message_id آخرین پیام
 
 def get_last_messages(bot_token, chat_id, limit=5):
     url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
@@ -178,7 +191,7 @@ def main():
                 if lines:
                     header, footer = get_header_footer(category, update_date)
                     message = header + "\n" + "\n".join(lines) + footer
-                    send_telegram_message(message, BOT_TOKEN, CHAT_ID)
+                final_message_id = send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
             

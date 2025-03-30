@@ -57,7 +57,14 @@ def extract_product_data(driver, valid_brands):
             brands.append("")
     return brands[25:], models[25:]
 
+def escape_markdown(text):
+    escape_chars = ['\\', '(', ')', '[', ']', '~', '*', '_', '-', '+', '>', '#', '.', '!', '|']
+    for char in escape_chars:
+        text = text.replace(char, '\\' + char)
+    return text
+
 def send_telegram_message(message, bot_token, chat_id):
+    message = escape_markdown(message)
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     params = {"chat_id": chat_id, "text": message, "parse_mode": "MarkdownV2"}
     response = requests.get(url, params=params)

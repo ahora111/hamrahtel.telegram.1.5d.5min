@@ -4,7 +4,6 @@ import time
 import requests
 import logging
 import json
-import threading
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -12,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from persiantools.jdatetime import JalaliDate
 
-# تنظیمات مربوط به تلگرام
+# تنظیمات تلگرام
 BOT_TOKEN = "8187924543:AAH0jZJvZdpq_34um8R_yCyHQvkorxczXNQ"
 CHAT_ID = "-1002284274669"
 
@@ -58,189 +57,81 @@ def extract_product_data(driver, valid_brands):
             brands.append("")
     return brands[25:], models[25:]
 
-def is_number(model_str):
-    try:
-        float(model_str.replace(",", ""))
-        return True
-    except ValueError:
-        return False
-
 def process_model(model_str):
     model_str = model_str.replace("٬", "").replace(",", "").strip()
-    if is_number(model_str):
+    try:
         model_value = float(model_str)
         model_value_with_increase = model_value * 1.015
         return f"{model_value_with_increase:,.0f}"
-    return model_str
-
-def escape_markdown(text):
-    escape_chars = ['\\', '(', ')', '[', ']', '~', '*', '_', '-', '+', '>', '#', '.', '!', '|']
-    for char in escape_chars:
-        text = text.replace(char, '\\' + char)
-    return text
-
-def split_message(message, max_length=4000):
-    return [message[i:i+max_length] for i in range(0, len(message), max_length)]
+    except ValueError:
+        return model_str
 
 def decorate_line(line):
     if line.startswith(('🔵', '🟡', '🍏', '🟣')):
         return line
     if "Galaxy" in line:
         return f"🔵 {line}"
-    elif "POCO" in line or "Poco" in line or "Redmi" in line:
+    elif "POCO" in line or "Redmi" in line:
         return f"🟡 {line}"
     elif "iPhone" in line:
         return f"🍏 {line}"
-    elif any(keyword in line for keyword in ["RAM", "FA", "Classic"]):
-        return f"🟣 {line}"
     else:
-        return line
+        return f"🟣 {line}"
 
 def categorize_messages(lines):
     categories = {"🔵": [], "🟡": [], "🍏": [], "🟣": []}
-    current_category = None
-
     for line in lines:
-        if line.startswith("🔵"):
-            current_category = "🔵"
-        elif line.startswith("🟡"):
-            current_category = "🟡"
-        elif line.startswith("🍏"):
-            current_category = "🍏"
-        elif line.startswith("🟣"):
-            current_category = "🟣"
-
-        if current_category:
-            categories[current_category].append(line)
-
+        category = line[:2]
+        if category in categories:
+            categories[category].append(line)
     return categories
 
 def get_header_footer(category, update_date):
     headers = {
-        "🔵": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی سامسونگ ➡️\n",
-        "🟡": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی شیایومی ➡️\n",
-        "🍏": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی آیفون ➡️\n",
-        "🟣": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی متفرقه ➡️\n",
+        "🔵": f"📅 بروزرسانی {update_date}\n⬅️ موجودی سامسونگ ➡️\n",
+        "🟡": f"📅 بروزرسانی {update_date}\n⬅️ موجودی شیایومی ➡️\n",
+        "🍏": f"📅 بروزرسانی {update_date}\n⬅️ موجودی آیفون ➡️\n",
+        "🟣": f"📅 بروزرسانی {update_date}\n⬅️ موجودی متفرقه ➡️\n",
     }
-    footer = "\n\n☎️ شماره های تماس :\n📞 09371111558\n📞 02833991417"
+    footer = "\n\n☎️ شماره تماس:\n📞 09371111558\n📞 02833991417"
     return headers[category], footer
 
-def send_telegram_message(message, bot_token, chat_id):
-    message_parts = split_message(message)
-    for part in message_parts:
-        part = escape_markdown(part)
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        params = {"chat_id": chat_id, "text": part, "parse_mode": "MarkdownV2"}
-        response = requests.get(url, params=params)
-        if response.json().get('ok') is False:
-            logging.error(f"❌ خطا در ارسال پیام: {response.json()}")
-            return
-    logging.info("✅ پیام ارسال شد!")
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    params = {"chat_id": CHAT_ID, "text": message, "parse_mode": "MarkdownV2"}
+    requests.get(url, params=params)
+
+def send_payment_message():
+    message = (
+        "✅ لیست گوشی‌ها بروز است. تحویل: 11:30 صبح روز بعد\n\n"
+        "✅ شماره کارت:\n"
+        "🔷 شبا: IR970560611828006154229701\n"
+        "🔷 کارت: 6219861812467917\n"
+        "🔷 بلو بانک: حسین گرئی\n\n"
+        "⭕️ رسید واریز به @lhossein1 ارسال شود."
+    )
+    send_telegram_message(message)
 
 def main():
-    try:
-        driver = get_driver()
-        if not driver:
-            logging.error("❌ نمی‌توان WebDriver را ایجاد کرد.")
-            return
-        
-        driver.get('https://hamrahtel.com/quick-checkout')
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
-        logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
-        scroll_page(driver)
-
-        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "Redtone", "VOCAL", "TCL", "NOKIA", "Honor", "Huawei", "GLX", "+Otel"]
-        brands, models = extract_product_data(driver, valid_brands)
-        driver.quit()
-
-        if brands:
-            processed_data = []
-            for i in range(len(brands)):
-                model_str = process_model(models[i])
-                processed_data.append(f"{model_str} {brands[i]}")
-
-            update_date = JalaliDate.today().strftime("%Y-%m-%d")
-            message_lines = []
-            for row in processed_data:
-                decorated = decorate_line(row)
-                message_lines.append(decorated)
-
-            categories = categorize_messages(message_lines)
-
-            for category, lines in categories.items():
-                if lines:
-                    header, footer = get_header_footer(category, update_date)
-                    message = header + "\n" + "\n".join(lines) + footer
-                    send_telegram_message(message, BOT_TOKEN, CHAT_ID)
-        else:
-            logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
-            
-
-def send_telegram_button(message, bot_token, chat_id, target_message_id=None):
-    """ارسال پیام پرداخت همراه با دکمه لیست سامسونگ"""
-    keyboard = {
-        "inline_keyboard": [[{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{chat_id[4:]}/{target_message_id}"}]] if target_message_id else []
-    }
-
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    params = {
-        "chat_id": chat_id,
-        "text": message,
-        "parse_mode": "MarkdownV2",
-        "reply_markup": json.dumps(keyboard)
-    }
-
-    response = requests.post(url, json=params)
-    if response.json().get('ok') is False:
-        logging.error(f"❌ خطا در ارسال دکمه: {response.json()}")
-    else:
-        logging.info("✅ دکمه ارسال شد!")
-
-def get_last_messages(bot_token, chat_id, limit=5):
-    """دریافت ۵ پیام آخر برای جستجوی پیام مورد نظر"""
-    url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
-    params = {"limit": limit}
-    response = requests.get(url, params=params)
-    
-    if response.status_code == 200:
-        updates = response.json().get("result", [])
-        messages = [msg for msg in updates if "message" in msg and "text" in msg["message"]]
-        return messages
-    else:
-        logging.error("❌ خطا در دریافت پیام‌ها!")
-        return []
-
-def find_message_id(bot_token, chat_id, keyword="موجودی سامسونگ"):
-    """جستجوی پیام دارای کلمه کلیدی و دریافت message_id آن"""
-    messages = get_last_messages(bot_token, chat_id)
-    for msg in messages:
-        if keyword in msg["message"]["text"]:
-            return msg["message"]["message_id"]
-    return None  # اگر پیام پیدا نشد
-
-def main():
-    try:
-        # دریافت پیام مورد نظر
-        found_message_id = find_message_id(BOT_TOKEN, CHAT_ID)
-
-        # ارسال پیام پرداخت همراه با دکمه
-        final_message = (
-            "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
-            "✅ شماره کارت جهت واریز\n"
-            "🔷 شماره شبا : IR970560611828006154229701\n"
-            "🔷 شماره کارت : 6219861812467917\n"
-            "🔷 بلو بانک   حسین گرئی\n\n"
-            "⭕️ حتما رسید واریز به ایدی تلگرام زیر ارسال شود .\n"
-            "🆔 @lhossein1\n\n"
-            "✅شماره تماس ثبت سفارش :\n"
-            "📞 09371111558\n"
-            "📞 02833991417"
-        )
-        
-        send_telegram_button(final_message, BOT_TOKEN, CHAT_ID, target_message_id=found_message_id)
-        
-    except Exception as e:
-        logging.error(f"❌ خطا: {e}")
+    driver = get_driver()
+    if not driver:
+        return
+    driver.get('https://hamrahtel.com/quick-checkout')
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
+    scroll_page(driver)
+    valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone"]
+    brands, models = extract_product_data(driver, valid_brands)
+    driver.quit()
+    if brands:
+        processed_data = [f"{process_model(models[i])} {brands[i]}" for i in range(len(brands))]
+        update_date = JalaliDate.today().strftime("%Y-%m-%d")
+        message_lines = [decorate_line(row) for row in processed_data]
+        categories = categorize_messages(message_lines)
+        for category, lines in categories.items():
+            if lines:
+                header, footer = get_header_footer(category, update_date)
+                send_telegram_message(header + "\n" + "\n".join(lines) + footer)
+    send_payment_message()
 
 if __name__ == "__main__":
     main()

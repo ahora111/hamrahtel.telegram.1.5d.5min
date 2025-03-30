@@ -191,7 +191,7 @@ def main():
                 if lines:
                     header, footer = get_header_footer(category, update_date)
                     message = header + "\n" + "\n".join(lines) + footer
-                    send_telegram_message(final_message, BOT_TOKEN, CHAT_ID)
+                    send_telegram_message(message, BOT_TOKEN, CHAT_ID)
      
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")

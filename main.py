@@ -85,7 +85,7 @@ def split_message(message, max_length=4000):
 def decorate_line(line):
     if line.startswith(('🟥', '🟨', '🟦')):
         return line
-    if "HUAWEI" in line:
+    if "huawei" in line:
         return f"🟥 {line}"
     elif "POCO" in line or "Poco" in line or "REDMI" in line or "Redmi" in line:
         return f"🟨 {line}"
@@ -166,11 +166,11 @@ def main():
         logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
         scroll_page(driver)
 
-        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "Redtone", "VOCAL", "TCL", "NOKIA", "Honor", "Huawei", "GLX", "+Otel"]
+        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "Redtone", "VOCAL", "TCL", "NOKIA", "Honor", "huawei", "GLX", "+Otel"]
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
-        HUAWEI_message_id = None  # ذخیره message_id سامسونگ
+        huawei_message_id = None  # ذخیره message_id سامسونگ
         xiaomi_message_id = None  # ذخیره message_id شیایومی
         samsung_message_id = None  # ذخیره message_id آیفون
 
@@ -195,7 +195,7 @@ def main():
                     msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
 
                     if category == "🟥":  # ذخیره message_id هوآوی
-                        HUAWEI_message_id = msg_id
+                        huawei_message_id = msg_id
                     elif category == "🟨":  # ذخیره message_id شیایومی
                         xiaomi_message_id = msg_id
                     elif category == "🟦":  # ذخیره message_id سامسونگ
@@ -223,8 +223,8 @@ def main():
         )
 
         button_markup = {"inline_keyboard": []}
-        if HUAWEI_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات هوآوی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{HUAWEI_message_id}"}])
+        if huawei_message_id:
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات هوآوی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{huawei_message_id}"}])
         if xiaomi_message_id:
             button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
         if samsung_message_id:

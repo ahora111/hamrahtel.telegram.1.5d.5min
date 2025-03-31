@@ -14,7 +14,7 @@ from persiantools.jdatetime import JalaliDate
 
 # تنظیمات مربوط به تلگرام
 BOT_TOKEN = "8187924543:AAH0jZJvZdpq_34um8R_yCyHQvkorxczXNQ"
-CHAT_ID = "-1002284274669"
+CHAT_ID = "-1002683452872"
 
 # تنظیمات لاگ‌گیری
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -83,32 +83,27 @@ def split_message(message, max_length=4000):
     return [message[i:i+max_length] for i in range(0, len(message), max_length)]
 
 def decorate_line(line):
-    if line.startswith(('🔵', '🟡', '🍏', '🟣')):
+    if line.startswith(('🟥', '🟨', '🟦')):
         return line
-    if "Galaxy" in line:
-        return f"🔵 {line}"
-    elif "POCO" in line or "Poco" in line or "Redmi" in line:
-        return f"🟡 {line}"
-    elif "iPhone" in line:
-        return f"🍏 {line}"
-    elif any(keyword in line for keyword in ["RAM", "FA", "Classic"]):
-        return f"🟣 {line}"
-    else:
+    if "HUAWEI" in line:
+        return f"🟥 {line}"
+    elif "POCO" in line or "Poco" in line or "REDMI" in line or "Redmi" in line:
+        return f"🟨 {line}"
+    elif "LCD" in line:
+        return f"🟦 {line}"
         return line
 
 def categorize_messages(lines):
-    categories = {"🔵": [], "🟡": [], "🍏": [], "🟣": []}
+    categories = {"🟥": [], "🟨": [], "🟦": []}
     current_category = None
 
     for line in lines:
-        if line.startswith("🔵"):
-            current_category = "🔵"
-        elif line.startswith("🟡"):
-            current_category = "🟡"
-        elif line.startswith("🍏"):
-            current_category = "🍏"
-        elif line.startswith("🟣"):
-            current_category = "🟣"
+        if line.startswith("🟥"):
+            current_category = "🟥"
+        elif line.startswith("🟨"):
+            current_category = "🟨"
+        elif line.startswith("🟦"):
+            current_category = "🟦"
 
         if current_category:
             categories[current_category].append(line)
@@ -117,10 +112,9 @@ def categorize_messages(lines):
 
 def get_header_footer(category, update_date):
     headers = {
-        "🔵": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی سامسونگ ➡️\n",
-        "🟡": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی شیایومی ➡️\n",
-        "🍏": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی آیفون ➡️\n",
-        "🟣": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی متفرقه ➡️\n",
+        "🟥": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ قطعات هوآوی  ➡️\n",
+        "🟨": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ قطعات شیایومی  ➡️\n",
+        "🟦": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ قطعات سامسونگ  ➡️\n",
     }
     footer = "\n\n☎️ شماره های تماس :\n📞 09371111558\n📞 02833991417"
     return headers[category], footer
@@ -167,7 +161,7 @@ def main():
             logging.error("❌ نمی‌توان WebDriver را ایجاد کرد.")
             return
         
-        driver.get('https://hamrahtel.com/quick-checkout')
+        driver.get('https://hamrahtel.com/quick-checkout?category=mobile-parts')
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
         logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
         scroll_page(driver)
@@ -200,12 +194,12 @@ def main():
                     message = header + "\n" + "\n".join(lines) + footer
                     msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
 
-                    if category == "🔵":  # ذخیره message_id سامسونگ
-                        samsung_message_id = msg_id
-                    elif category == "🟡":  # ذخیره message_id شیایومی
+                    if category == "🟥":  # ذخیره message_id هوآوی
+                        HUAWEI_message_id = msg_id
+                    elif category == "🟨":  # ذخیره message_id شیایومی
                         xiaomi_message_id = msg_id
-                    elif category == "🍏":  # ذخیره message_id آیفون
-                        iphone_message_id = msg_id
+                    elif category == "🟦":  # ذخیره message_id سامسونگ
+                        samsung_message_id = msg_id
 
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
@@ -216,7 +210,7 @@ def main():
 
         # ✅ ارسال پیام نهایی + دکمه‌های لینک به پیام‌های مربوطه
         final_message = (
-            "✅ لیست گوشیای بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
+            "✅ لیست قطعات بالا بروز میباشد. تحویل کالا بعد از ثبت خرید، ساعت 11:30 صبح روز بعد می باشد.\n\n"
             "✅ شماره کارت جهت واریز\n"
             "🔷 شماره شبا : IR970560611828006154229701\n"
             "🔷 شماره کارت : 6219861812467917\n"
@@ -229,12 +223,12 @@ def main():
         )
 
         button_markup = {"inline_keyboard": []}
-        button_markup["inline_keyboard"].append([{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
-        
+        if HUAWEI_message_id:
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات هوآوی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
         if xiaomi_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
-        if iphone_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{iphone_message_id}"}])
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
+        if samsung_message_id:
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{iphone_message_id}"}])
 
         send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
 

@@ -170,9 +170,9 @@ def main():
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
-        samsung_message_id = None  # ذخیره message_id سامسونگ
+        HUAWEI_message_id = None  # ذخیره message_id سامسونگ
         xiaomi_message_id = None  # ذخیره message_id شیایومی
-        iphone_message_id = None  # ذخیره message_id آیفون
+        samsung_message_id = None  # ذخیره message_id آیفون
 
         if brands:
             processed_data = []

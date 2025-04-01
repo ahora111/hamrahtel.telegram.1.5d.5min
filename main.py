@@ -170,7 +170,7 @@ def main():
         logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
         scroll_page(driver)
 
-        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "Redtone", "VOCAL", "TCL", "NOKIA", "Honor", "huawei", "GLX", "+Otel"]
+        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "NOKIA", "Honor", "huawei"]
         brands, models = extract_product_data(driver, valid_brands)
         driver.quit()
 
@@ -208,8 +208,8 @@ def main():
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
 
-        if not samsung_message_id:
-            logging.error("❌ پیام سامسونگ ارسال نشد، دکمه اضافه نخواهد شد!")
+        if not huawei_message_id:
+            logging.error("❌ پیام هوآوی ارسال نشد، دکمه اضافه نخواهد شد!")
             return
 
         # ✅ ارسال پیام نهایی + دکمه‌های لینک به پیام‌های مربوطه

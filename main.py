@@ -86,15 +86,16 @@ def split_message(message, max_length=4000):
 
 def decorate_line(line):
     if not line or not isinstance(line, str):  
-        return ""  
+        return ""  # مقدار پیش‌فرض در صورت نامعتبر بودن مقدار line
 
-    if "huawei" in line:
+    if "huawei" in line.lower():
         return f"🟥 {line}"
-    elif "POCO" in line or "Poco" in line or "REDMI" in line or "Redmi" in line:
+    elif any(keyword in line.lower() for keyword in ["poco", "redmi"]):
         return f"🟨 {line}"
-    elif "LCD" in line:
+    elif "lcd" in line.lower():
         return f"🟦 {line}"
     return line
+
 
 def categorize_messages(lines):
     categories = {"🟥": [], "🟨": [], "🟦": []}

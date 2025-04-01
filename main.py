@@ -177,6 +177,9 @@ def main():
         xiaomi_message_id = None  # ذخیره message_id شیایومی
         huawei_message_id = None  # ذخیره message_id آیفون
         
+        logging.info(f"📊 تعداد برندها: {len(brands)}, تعداد مدل‌ها: {len(models)}")
+        logging.info(f"📌 نمونه داده‌ها: {brands[:5]}, {models[:5]}")
+
         if brands:
             processed_data = []
             for i in range(len(brands)):

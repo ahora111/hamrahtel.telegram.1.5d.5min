@@ -88,14 +88,15 @@ def decorate_line(line):
         return ""  # مقدار خالی برگردان تا مشکلی ایجاد نشود
 
     if line.startswith(('🟥', '🟨', '🟦')):
-        return line
+            if not line or not isinstance(line, str):  # بررسی اینکه مقدار None نباشد
+        return ""
     if "huawei" in line:
         return f"🟥 {line}"
     elif "POCO" in line or "Poco" in line or "REDMI" in line or "Redmi" in line:
         return f"🟨 {line}"
     elif "LCD" in line:
         return f"🟦 {line}"
-        return line
+    return line
 
 def categorize_messages(lines):
     categories = {"🟥": [], "🟨": [], "🟦": []}

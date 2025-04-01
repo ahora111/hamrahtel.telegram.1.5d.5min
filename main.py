@@ -82,45 +82,29 @@ def split_message(message, max_length=4000):
     return [message[i:i+max_length] for i in range(0, len(message), max_length)]
 
 def decorate_line(line):
-    if line.startswith(('🔵', '🟡', '🍏', '🟣', '💻', '🟠')):
+    if line.startswith(('🟦', '🟨', '🟥')):
         return line
-    if any(keyword in line for keyword in ["Nartab", "Tab"]):
-        return f"🟠 {line}"
-    elif "Galaxy" in line:
-        return f"🔵 {line}"
+    elif "huawei" in line:
+        return f"🟥 {line}"
     elif "POCO" in line or "Poco" in line or "Redmi" in line:
-        return f"🟡 {line}"
-    elif "iPhone" in line:
-        return f"🍏 {line}"
-    elif any(keyword in line for keyword in ["اینچی"]):
-        return f"💻 {line}"
-    elif any(keyword in line for keyword in ["RAM", "FA", "Classic"]):
-        return f"🟣 {line}"
+        return f"🟨 {line}"
+    elif "lcd" in line:
+        return f"🟦 {line}"
     else:
         return line
 
 
-
-
-
-
 def categorize_messages(lines):
-    categories = {"🔵": [], "🟡": [], "🍏": [], "🟣": [], "💻": [], "🟠": []}  # اضافه کردن 🟠 برای تبلت
+    categories = {"🟦": [], "🟨": [], "🟥": []}  
     current_category = None
 
     for line in lines:
-        if line.startswith("🔵"):
-            current_category = "🔵"
-        elif line.startswith("🟡"):
-            current_category = "🟡"
-        elif line.startswith("🍏"):
-            current_category = "🍏"
-        elif line.startswith("🟣"):
-            current_category = "🟣"
-        elif line.startswith("💻"):
-            current_category = "💻"
-        elif line.startswith("🟠"):  # اضافه کردن شرط برای تبلت
-            current_category = "🟠"
+        if line.startswith("🟦"):
+            current_category = "🟦"
+        elif line.startswith("🟨"):
+            current_category = "🟨"
+        elif line.startswith("🟥"):
+            current_category = "🟥"
 
         if current_category:
             categories[current_category].append(f"{line}")
@@ -129,12 +113,9 @@ def categorize_messages(lines):
 
 def get_header_footer(category, update_date):
     headers = {
-        "🔵": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی سامسونگ ➡️\n",
-        "🟡": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی شیایومی ➡️\n",
-        "🍏": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی آیفون ➡️\n",
-        "🟣": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی متفرقه ➡️\n",
-        "💻": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی لپ‌تاپ ➡️\n",
-        "🟠": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش موبایل اهورا\n⬅️ موجودی تبلت ➡️\n",  # اضافه کردن هدر برای تبلت
+        "🟦": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش قطعات موبایل اهورا\n⬅️ موجودی قطعات سامسونگ ➡️\n",
+        "🟨": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش قطعات موبایل اهورا\n⬅️ موجودی قطعات شیایومی ➡️\n",
+        "🟥": f"📅 بروزرسانی قیمت در تاریخ {update_date} می باشد\n✅ لیست پخش قطعات موبایل اهورا\n⬅️ موجودی قطعات هوآوی ➡️\n",
     }
     footer = "\n\n☎️ شماره های تماس :\n📞 09371111558\n📞 02833991417"
     return headers[category], footer
@@ -181,39 +162,20 @@ def main():
             logging.error("❌ نمی‌توان WebDriver را ایجاد کرد.")
             return
         
-        driver.get('https://hamrahtel.com/quick-checkout?category=mobile')
+        driver.get('https://hamrahtel.com/quick-checkout?category=mobile-parts')
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
         logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
         scroll_page(driver)
 
-        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "Redtone", "VOCAL", "TCL", "NOKIA", "Honor", "Huawei", "GLX", "+Otel", "اینچی" ]
+        valid_brands = ["Galaxy", "POCO", "Redmi", "iPhone", "NOKIA", "Honor", "huawei"]
         brands, models = extract_product_data(driver, valid_brands)
-        
-        driver.get('https://hamrahtel.com/quick-checkout?category=laptop')
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
-        logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
-        scroll_page(driver)
 
-        laptop_brands, laptop_models = extract_product_data(driver, valid_brands)
-        brands.extend(laptop_brands)
-        models.extend(laptop_models)
-
-        driver.get('https://hamrahtel.com/quick-checkout?category=tablet')  # اضافه کردن لینک تبلت
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
-        logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
-        scroll_page(driver)
-
-        tablet_brands, tablet_models = extract_product_data(driver, valid_brands)  # استخراج داده‌های تبلت
-        brands.extend(tablet_brands)
-        models.extend(tablet_models)
         
         driver.quit()
 
         samsung_message_id = None  # ذخیره message_id سامسونگ
         xiaomi_message_id = None  # ذخیره message_id شیایومی
-        iphone_message_id = None  # ذخیره message_id آیفون
-        laptop_message_id = None  # ذخیره message_id لپ‌تاپ
-        tablet_message_id = None  # ذخیره message_id تبلت
+        huawei_message_id = None  # ذخیره message_id آیفون
         
         if brands:
             processed_data = []
@@ -235,16 +197,12 @@ def main():
                     message = header + "\n" + "\n".join(lines) + footer
                     msg_id = send_telegram_message(message, BOT_TOKEN, CHAT_ID)
 
-                    if category == "🔵":  # ذخیره message_id سامسونگ
+                    if category == "🟦":  # ذخیره message_id سامسونگ
                         samsung_message_id = msg_id
-                    elif category == "🟡":  # ذخیره message_id شیایومی
+                    elif category == "🟨":  # ذخیره message_id شیایومی
                         xiaomi_message_id = msg_id
-                    elif category == "🍏":  # ذخیره message_id آیفون
-                        iphone_message_id = msg_id
-                    elif category == "💻":  # ذخیره message_id لپ‌تاپ
-                        laptop_message_id = msg_id
-                    elif category == "🟠":  # ذخیره message_id تبلت
-                        tablet_message_id = msg_id
+                    elif category == "🟥":  # ذخیره message_id آیفون
+                       huawei_message_id = msg_id
 
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
@@ -269,15 +227,11 @@ def main():
 
         button_markup = {"inline_keyboard": []}
         if samsung_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات سامسونگ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{samsung_message_id}"}])
         if xiaomi_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
-        if iphone_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست آیفون", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{iphone_message_id}"}])
-        if laptop_message_id:
-            button_markup["inline_keyboard"].append([{"text": "💻 لیست لپ‌تاپ", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{laptop_message_id}"}])
-        if tablet_message_id:
-            button_markup["inline_keyboard"].append([{"text": "📱 لیست تبلت", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{tablet_message_id}"}])
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات شیایومی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{xiaomi_message_id}"}])
+        if huawei_message_id:
+            button_markup["inline_keyboard"].append([{"text": "📱 لیست قطعات هوآوی", "url": f"https://t.me/c/{CHAT_ID.replace('-100', '')}/{huawei_message_id}"}])
     
         send_telegram_message(final_message, BOT_TOKEN, CHAT_ID, reply_markup=button_markup)
 

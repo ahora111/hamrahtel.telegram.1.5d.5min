@@ -154,6 +154,9 @@ def get_last_messages(bot_token, chat_id, limit=5):
         messages = response.json().get("result", [])
         return [msg for msg in messages if "message" in msg][-limit:]
     return []
+    
+logging.info(f"📊 تعداد برندها: {len(brands)}, تعداد مدل‌ها: {len(models)}")
+logging.info(f"📌 نمونه داده‌ها: {brands[:5]}, {models[:5]}")
 
 def main():
     try:
@@ -177,8 +180,6 @@ def main():
         xiaomi_message_id = None  # ذخیره message_id شیایومی
         huawei_message_id = None  # ذخیره message_id آیفون
         
-        logging.info(f"📊 تعداد برندها: {len(brands)}, تعداد مدل‌ها: {len(models)}")
-        logging.info(f"📌 نمونه داده‌ها: {brands[:5]}, {models[:5]}")
 
         if brands:
             processed_data = []
@@ -194,6 +195,12 @@ def main():
 
             categories = categorize_messages(message_lines)
 
+            
+            logging.info(f"📂 دسته‌بندی‌های ایجاد شده: {categories.keys()}")
+            for cat, items in categories.items():
+            logging.info(f"📜 دسته {cat}: {len(items)} مورد")
+
+            
             for category, lines in categories.items():
                 if lines:
                     header, footer = get_header_footer(category, update_date)

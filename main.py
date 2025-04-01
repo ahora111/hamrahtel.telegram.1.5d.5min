@@ -85,10 +85,10 @@ def split_message(message, max_length=4000):
 def decorate_line(line):
     if line.startswith(('🔵', '🟡', '🍏', '🟣')):
         return line
-    if "HUAWEI" in line:
-        return f"🟥 {line}"
-    elif "POCO" in line or "Poco" in line or "Redmi" in line or "REDMI" in line:
-        return f"🟨 {line}"
+    if "Galaxy" in line:
+        return f"🔵 {line}"
+    elif "POCO" in line or "Poco" in line or "Redmi" in line:
+        return f"🟡 {line}"
     elif "iPhone" in line:
         return f"🍏 {line}"
     elif any(keyword in line for keyword in ["RAM", "FA", "Classic"]):
@@ -167,7 +167,7 @@ def main():
             logging.error("❌ نمی‌توان WebDriver را ایجاد کرد.")
             return
         
-        driver.get('https://hamrahtel.com/quick-checkout?category=laptop')
+        driver.get('https://hamrahtel.com/quick-checkout')
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, 'mantine-Text-root')))
         logging.info("✅ داده‌ها آماده‌ی استخراج هستند!")
         scroll_page(driver)
@@ -210,7 +210,9 @@ def main():
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
 
-
+        if not samsung_message_id:
+            logging.error("❌ پیام سامسونگ ارسال نشد، دکمه اضافه نخواهد شد!")
+            return
 
         # ✅ ارسال پیام نهایی + دکمه‌های لینک به پیام‌های مربوطه
         final_message = (
@@ -241,5 +243,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 

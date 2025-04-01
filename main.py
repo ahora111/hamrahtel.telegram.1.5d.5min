@@ -192,6 +192,12 @@ def main():
                 message_lines.append(decorated)
 
             categories = categorize_messages(message_lines)
+            
+for i, row in enumerate(processed_data):
+    if row is None:
+        logging.error(f"❌ مقدار None در processed_data در ایندکس {i} یافت شد!")
+    else:
+        logging.info(f"✅ پردازش: {row}")
 
             for category, lines in categories.items():
                 if lines:

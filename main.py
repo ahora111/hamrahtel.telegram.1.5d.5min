@@ -83,6 +83,10 @@ def split_message(message, max_length=4000):
     return [message[i:i+max_length] for i in range(0, len(message), max_length)]
 
 def decorate_line(line):
+    
+    if not line:  # اگر مقدار None یا خالی باشد
+        return ""  # مقدار خالی برگردان تا مشکلی ایجاد نشود
+
     if line.startswith(('🟥', '🟨', '🟦')):
         return line
     if "huawei" in line:

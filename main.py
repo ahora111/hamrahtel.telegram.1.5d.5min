@@ -210,9 +210,7 @@ def main():
         else:
             logging.warning("❌ داده‌ای برای ارسال وجود ندارد!")
 
-        if not samsung_message_id:
-            logging.error("❌ پیام سامسونگ ارسال نشد، دکمه اضافه نخواهد شد!")
-            return
+
 
         # ✅ ارسال پیام نهایی + دکمه‌های لینک به پیام‌های مربوطه
         final_message = (
